@@ -137,6 +137,31 @@ For example, the code above is rendered as following.
 
 ![There is a button on the left side in the image. That button has a black border and the word "Btn" in bold type.](./btn.png)
 
+
+Tic Tac Toe board consists of 3 x 3 cells. The following HTML represents the board DOM tree.
+
+```html
+<div>
+  <div>
+    <Square/>
+    <Square/>
+    <Square/>
+  </div>
+  <div>
+    <Square/>
+    <Square/>
+    <Square/>
+  </div>
+  <div>
+    <Square/>
+    <Square/>
+    <Square/>
+  </div>
+</div>
+```
+
+We convert this HTML representation into Scala representation.
+
 The code bellow displays buttons in 3 x 3 grid. Each button should show one of " ", "O" or "X" according to state, but we put "Btn" as a placeholder for now.
 
 ```scala
