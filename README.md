@@ -70,10 +70,13 @@ You will need an HTTP server, such as `python3 -m http.server`, to open the file
 
 ## Tic Tac Toe Tutorial
 
+
 ```sh
 git clone https://github.com/i10416/tictactoe
 cd tictactoe
 ```
+
+### display UI
 
 First, look at the entrypoint at `src/main/scala/tictactoe/Index.scala`.
 
@@ -188,6 +191,8 @@ You can easily create 3 x 3 grid with Scala's collection combinators(`map`, `gro
 
 You may notice that there is fancy syntax; `.amend(display.flex)`. `amend` and `amendThis` are helper methods that allow us to provide additional properties to HTML elements. `amend` takes `Modifier` as does `HTMLEmement#apply`.
 
+### State Management
+
 For now, you have not use any stateful component at all. However, we cannot do without state management in most of modern frontend application development.
 
 In this tutorial, you use mainly two state management API from Laminar. One is `Var[T]` and the other is `EventBus[T]`.
@@ -266,6 +271,8 @@ object Game:
 ```
 
 ![9 "empty" words are arranged in 3 x 3 grid.](./empties.png)
+
+### Mutate State
 
 At this point, you cannot change cell state yet :(
 
@@ -410,6 +417,7 @@ And replace `cell.toString()` with `cell.show`.
 ![Empty cells do not display "Empty" word.](./tictactoe-no-empty.png)
 
 
+### Enhancement
 
 Current implementation lacks the following features.
 
