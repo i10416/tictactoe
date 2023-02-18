@@ -11,6 +11,8 @@ This is a port of [Tic-Tac-Toe React tutorial](https://beta.reactjs.org/learn/tu
 You will build a small tic-tac-toe game during this tutorial.
 You can see what it will look like when you’re finished here:
 
+https://i10416.github.io/tictactoe/
+
 ![tictactoe](./tictactoe.png)
 
 
