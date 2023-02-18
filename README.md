@@ -112,20 +112,24 @@ object Square:
 
 Laminar's HTML elements take `Modifier[ReactiveHtmlElement[HTMLButtonElement]]` as  varargs. `Modifier` may be other HTML element, `child` or `children` element(s), style or other HTML attributes or event handler such as `onClick` or `onBlur`.
 
+```scala
+object Square:
+  def apply() = button(
+    "Btn",
+    fontSize.larger,
+    width("56px"),
+    height("56px"),
+    display.block,
+    color.black,
+    fontWeight.bold
+  )
+```
 
 ```scala
 @main def program =
   renderOnDomContentLoaded(
     dom.document.getElementById("app"),
-    button(
-      "Btn",
-      fontSize.larger,
-      width("56px"),
-      height("56px"),
-      display.block,
-      color.black,
-      fontWeight.bold
-    )
+    Square()
   )
 ```
 
