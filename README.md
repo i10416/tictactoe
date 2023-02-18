@@ -382,3 +382,107 @@ And replace `cell.toString()` with `cell.show`.
 ```
 
 ![Empty cells do not display "Empty" word.](./tictactoe-no-empty.png)
+
+
+
+Current implementation lacks the following features.
+
+- detect the winner
+- restore histories
+- fancy UI
+
+Let's implement them one by one. 
+
+
+```scala
+  def check(board: Seq[Cell]) =
+    val lines = Seq(
+      (0, 1, 2),
+      (3, 4, 5),
+      (6, 7, 8),
+      (0, 3, 6),
+      (1, 4, 7),
+      (2, 5, 8),
+      (0, 4, 8),
+      (2, 4, 6)
+    )
+    lines.find { (a, b, c) =>
+      (board(a), board(b), board(c)) match
+        case (Cell.O, Cell.O, Cell.O) | (Cell.X, Cell.X, Cell.X) => true
+        case _                                                   => false
+    }.isDefined
+```
+
+We need to replace board state from `Var[Seq[Cell]]` to `Var[Seq[Seq[Cell]]]`. Here, outer `Seq` represents turn and inner `Seq` holds board state at that point.
+
+We also need to lock UI when one player wins, so we introduce another `Var` that holds whether there is a winner.
+
+```scala
+val histories = Var(Seq(Seq.fill(9)(Cell.Empty)))
+val wonBy: Var[Option[Boolean]] = Var(None)
+```
+
+Accordingly, we need to modify observer too.
+
+```scala
+ val obs: Observer[Cmd] = Observer[Cmd] {
+    case Cmd.Choose(loc) =>
+      val turn = turnVar.now()
+      val last = histories.now()(turn)
+      last(loc) match
+        case Cell.Empty =>
+          val (leading, _ +: trailing) = last.splitAt(loc): @unchecked
+          val present = (leading :+ (if turn % 2 == 0 then Cell.O
+                                     else Cell.X)) ++ trailing
+          histories.update(_.take(turn + 1) :+ present)
+          if check(present) then wonBy.set(Some(turn % 2 == 0))
+          turnVar.update(_ + 1)
+        case _ => ()
+ }
+```
+
+Then, we pass a winner argument to `Square` so that we can disable `onClick` handler when there is a winner.
+
+```scala
+object Square:
+  def apply(loc: Int, cell: Cell, winner: Option[Boolean]) =
+    div(
+      button(
+        cell.show,
+        onClick
+          .filter(_ => cell == Cell.Empty && winner.isEmpty)
+          .mapTo(Cmd.Choose(loc)) --> Game.obs,
+        disabled := cell != Cell.Empty
+      ).amend(
+        fontSize.larger,
+        width("56px"),
+        height("56px"),
+        display.block,
+        color.black,
+        fontWeight.bold
+      ),
+      padding("2px")
+    )
+
+```
+
+As `Square#apply` signature changes, we need to modify `cells` value too. Now, `cells` subscribes to `wonBy` signal.
+
+```scala
+  val cells = turnVar.signal
+    .withCurrentValueOf(histories.signal)
+    .withCurrentValueOf(wonBy)
+    .map((turn, boards, winner) =>
+      boards(turn).zipWithIndex
+        .map((cell, loc) => Square(loc, cell, winner))
+        .grouped(3) // group 3 items into row
+        .map(
+          div(_).amend(
+            display.flex,
+            justifyContent.center,
+            flexWrap.nowrap
+          )
+        )
+        .toSeq
+    )
+```

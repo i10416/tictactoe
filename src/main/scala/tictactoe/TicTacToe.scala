@@ -37,7 +37,6 @@ object Game:
   val turnVar = Var(0)
   val wonBy: Var[Option[Boolean]] = Var(None)
   val histories = Var(Seq(Seq.fill(9)(Cell.Empty)))
-  val mat = Var(Seq.fill(9)(Cell.Empty))
 
   val cells = turnVar.signal
     .withCurrentValueOf(histories.signal)
