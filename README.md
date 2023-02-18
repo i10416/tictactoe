@@ -70,7 +70,13 @@ You will need an HTTP server, such as `python3 -m http.server`, to open the file
 
 ## Tic Tac Toe Tutorial
 
-First, we create entrypoint at `src/main/scala/tictactoe/Index.scala`.
+```sh
+git clone https://github.com/i10416/tictactoe
+cd tictactoe
+```
+
+First, look at the entrypoint at `src/main/scala/tictactoe/Index.scala`.
+
 
 `renderOnDomContentLoaded` function binds Laminar HTML element to real DOM element.
 
@@ -82,16 +88,17 @@ import org.scalajs.dom
 @main def program =
   renderOnDomContentLoaded(
     dom.document.getElementById("app"),
-    p("Hello, Laminar")
+    Game.layout
   )
 ```
 
-Run `sbt ~fastLinkJS` and `npm run dev`, then open http://localhost:3000
+Now, replace `Game.layout` with `p("Hello, Laminar")` and run `sbt ~fastLinkJS`, `npm run dev`, then open http://localhost:3000
 
 You will find `Hello, Laminar` message like this.
 
 ![text "Hello, Laminar" is displayed at the center of screen](./HelloLaminar.png)
 
+There is a reference impelementation in `src/main/scala/tictactoe/TicTacToe.scala` and `Game.layout` comes from there. When you get stuck, look at `TicTacToe.scala` and check how it changes when you modify it.
 
 Next, We create a cell component of Tic Tac Toe board.
 
