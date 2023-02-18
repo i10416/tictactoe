@@ -148,17 +148,7 @@ The code bellow displays buttons in 3 x 3 grid. Each button should show one of "
         .tabulate(9)(identity)
         .grouped(3)
         .map(
-          _.map(_ =>
-            button(
-              "Btn",
-              fontSize.larger,
-              width("56px"),
-              height("56px"),
-              display.block,
-              color.black,
-              fontWeight.bold
-            )
-          )
+          _.map(_ => Square())
         )
         .map(div(_).amend(display.flex))
         .toList
