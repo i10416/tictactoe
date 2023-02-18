@@ -18,15 +18,33 @@ object Cell:
       case O     => "O"
 
 object Game:
+  def check(board: Seq[Cell]) =
+    val lines = Seq(
+      (0, 1, 2),
+      (3, 4, 5),
+      (6, 7, 8),
+      (0, 3, 6),
+      (1, 4, 7),
+      (2, 5, 8),
+      (0, 4, 8),
+      (2, 4, 6)
+    )
+    lines.find { (a, b, c) =>
+      (board(a), board(b), board(c)) match
+        case (Cell.O, Cell.O, Cell.O) | (Cell.X, Cell.X, Cell.X) => true
+        case _                                                   => false
+    }.isDefined
   val turnVar = Var(0)
+  val wonBy: Var[Option[Boolean]] = Var(None)
   val histories = Var(Seq(Seq.fill(9)(Cell.Empty)))
   val mat = Var(Seq.fill(9)(Cell.Empty))
 
   val cells = turnVar.signal
     .withCurrentValueOf(histories.signal)
-    .map((turn, boards) =>
+    .withCurrentValueOf(wonBy)
+    .map((turn, boards, winner) =>
       boards(turn).zipWithIndex
-        .map((cell, loc) => Square(loc, cell))
+        .map((cell, loc) => Square(loc, cell, winner))
         .grouped(3) // group 3 items into row
         .map(
           div(_).amend(
@@ -41,17 +59,13 @@ object Game:
   val obs: Observer[Cmd] = Observer[Cmd] {
     case Cmd.Choose(loc) =>
       val turn = turnVar.now()
-      histories.now()(turn)(loc) match
+      val last = histories.now()(turn)
+      last(loc) match
         case Cell.Empty =>
-          histories.update(histories =>
-            val history = histories(turn)
-            val (leading, _ +: trailing) = history.splitAt(loc): @unchecked
-            // this is safe because each history has exact 9 cells and loc is [0,9)
-            val present = (leading :+ (if turn % 2 == 0 then Cell.O
-                                       else Cell.X)) ++ trailing
-
-            histories.take(turn + 1) :+ present
-          )
+          val (leading, _ +: trailing) = last.splitAt(loc): @unchecked
+          val present = (leading :+ (if turn % 2 == 0 then Cell.O
+                                     else Cell.X)) ++ trailing
+          histories.update(_.take(turn + 1) :+ present)
           cmdBus.emit(
             CollectionCommand.ReplaceAll(
               List.tabulate(turn + 1)(i =>
@@ -63,6 +77,7 @@ object Game:
               )
             )
           )
+          if check(present) then wonBy.set(Some(turn % 2 == 0))
           turnVar.update(_ + 1)
         case _ => ()
     case Cmd.JumpTo(t) => turnVar.set(t)
@@ -89,9 +104,15 @@ object Game:
         )
       ),
       p(
-        child.text <-- turnVar.signal.map(t =>
-          s"Next Player: ${if t % 2 == 0 then "O" else "X"}"
-        )
+        child.text <-- turnVar.signal
+          .withCurrentValueOf(wonBy)
+          .map((t, w) =>
+            w match
+              case None =>
+                s"Next Player: ${if t % 2 == 0 then "O" else "X"}"
+              case Some(value) =>
+                if value then "Winner: O" else "Winner X"
+          )
       )
     ),
     board
@@ -104,12 +125,12 @@ enum Cmd:
   case JumpTo(t: Int)
 
 object Square:
-  def apply(loc: Int, cell: Cell) =
+  def apply(loc: Int, cell: Cell, winner: Option[Boolean]) =
     div(
       button(
         cell.show,
         onClick
-          .filter(_ => cell == Cell.Empty)
+          .filter(_ => cell == Cell.Empty && winner.isEmpty)
           .mapTo(Cmd.Choose(loc)) --> Game.obs,
         disabled := cell != Cell.Empty
       ).amend(
